@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="board">
+	
+	<select id="getList" resultType="boardvo" parameterType="int">
+		<![CDATA[	
+		select * from ( select rownum rn, c.* from ( select
+		a.bNo, a.title, a.hit, to_char(a.reg_date, 'yyyy-mm-dd') as regDate, b.name as userName, b.no as userNo
+		from board a, users b where a.no = b.no order by a.g_no desc, a.o_no
+		desc) c ) where (#{page}-1)*5 +1 < =rn and rn <= #{page}*5
+		]]>
+	</select>
+	
+	<select id="look" resultType="boardvo" parameterType="map">
+		<![CDATA[
+		select * from ( 
+			select rownum rn, c.* from (
+				 select a.depth,
+							a.bNo, 
+							a.title, 
+							a.hit, 
+							to_char(a.reg_date, 'yyyy-mm-dd') as regDate, 
+							b.name as userName, 
+							b.no as userNo
+				from board a, users b 
+							where a.no = b.no and a.title like '%${keyword}%'
+				order by a.g_no desc, 
+							 a.o_no
+							desc) c ) 
+							where (#{page}-1)*5 +1 < =rn and rn <= #{page}*5
+		]]>
+	
+	</select>
+
+	<select id="getListSize" resultType="int" parameterType="string">
+		select count(*) from (
+		select rownum rn, c.* from ( select a.bNo, a.title, a.hit,
+		to_char(a.reg_date, 'yyyy-mm-dd'), b.name, b.no from board a, users b
+		where a.no = b.no and a.title like '%${_parameter}%' order by a.g_no desc, a.o_no asc) c )
+	</select>
+
+	<insert id="input" parameterType="map">
+		<![CDATA[
+		insert into board values(seq_board.nextval, #{title} , #{content} , sysdate, 0, (select nvl(max(g_no)+1,0) from board), 1, 0, #{no})
+		]]>
+	</insert>
+	
+	<insert id="inputreply" parameterType="map">
+		<![CDATA[
+		insert into board values(seq_board.nextval, #{title} , #{content} , sysdate, 0, #{gNo} , #{oNo}, #{depth}+1, #{userNo})
+		]]>
+	
+	</insert>
+	
+	<update id="updateono" parameterType="map">
+	 <![CDATA[ 
+	 update board set O_NO= #{oNo}+O_NO where G_NO=#{gNo} and DEPTH<#{depth}+1
+	 ]]>
+	
+	</update>
+	
+	
+	<delete id="delete" parameterType="boardvo">
+		<![CDATA[
+		delete from board where bNo=#{bNo} and no=#{userNo}
+		]]>
+
+	</delete>
+	
+	<select id="getboard" resultType="boardvo" parameterType="long">
+		select content, title, no as userNo, g_no as gNo, o_no as oNo, depth  from board where bNo=#{bNo}
+	</select>
+	
+	<update id="updateHit" parameterType="long">
+		update board set hit=hit+1 where bNo=#{bNo}
+	</update>
+	
+	<update id="updatecontent" parameterType="map">
+		update board set title=#{title}, content=#{content} where bNo=#{bNo}
+	</update>
+</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gallery">
+
+<insert id="input" parameterType="galleryvo">
+	<![CDATA[
+	insert into gallery values(seq_gallery.nextval, #{originalFileName}, #{saveFileName} , #{comments})
+	]]>
+</insert>
+<select id="getList" resultType="galleryvo">
+	select no, org_file as originalFileName, save_file as saveFileName, comments from gallery
+</select>
+
+</mapper>
